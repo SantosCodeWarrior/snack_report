@@ -1,0 +1,251 @@
+{% extends "base.html" %}
+{% block content %}
+
+<script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+<style type="text/css">
+  .hot-display-license-info{
+    display: none;
+  }
+</style>
+
+<div class="container">
+  <div class="col-md-4">
+    <div class="box">
+      <div class="box-body">
+        <h4>Reports</h4>       
+        <div class = "" style="height:100%;width: 1000px;">
+          <table class="table table-hover table-bordered col-md-12"  style="width:100%">
+            <thead>
+              <tr>
+                <th colspan="2">
+                  <select class="form-control" id="owner_list"> 
+                    <option id="0">Select Owner</option>
+                    {% for x in owner_list %}
+                      <option value='{{x.id}}'>{{x.shop_name}}</option>
+                      {% endfor %}
+                  </select>
+                </th>
+                <td colspan="2">Address</td>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Proprietor</td>
+                <td id="get_owner_name"></td>
+                <td colspan="2" id="get_address"></td>
+              </tr>
+              <tr>
+                <td>Mob No-</td>
+                <td id="get_contact_no"></td>
+                <td>Date</td>
+                <td><input type="date" name="" class="form-control" id="date_filter"></td>
+              </tr>
+         
+              <tr>
+                <td  colspan="2"><button class="btn btn-warning col-md-12" id="export_data" style="display: none">Export</button></td>                
+                <td colspan="2"><button class="btn btn-success col-md-8" id="load_data">Load</button></td>
+              </tr>
+            </tbody>
+            </table>          
+        </div>
+      </div>  
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="col-md-4">
+    <div class="box">
+      <div class="box-body">        
+        <div class = "col-md-12" style="height:100%">
+          <div class = 'handsontable' style="height: 400px; width:1000px;overflow: auto; margin-top: 8px;margin-left: -38px;" data-originalstyle="height: 300px; overflow: auto"  id="report_data"></div>
+          
+        </div>
+        
+       
+      </div>  
+    </div>
+  </div>
+</div>
+
+
+<script type="text/javascript">
+  $('#owner_list').change(function(){
+    var owner_list = $('#owner_list').val();
+    
+    $.ajax({
+      url: '/snacks/get_owner_master/',
+      dataType: 'JSON',
+      type: 'GET',
+      data:
+      {
+        'owner_list'  : owner_list,             
+      },
+      success : function(obj){        
+        $('#get_address').html(obj['get_info'][0]['address'])
+        $('#get_owner_name').html(obj['get_info'][0]['owner_name'])
+        $('#get_contact_no').html(obj['get_info'][0]['contact_no'])
+        $('#get_address').css('font-weight','bold');
+        $('#get_owner_name').css('font-weight','bold');
+        $('#get_contact_no').css('font-weight','bold');
+
+      },
+      error : function(err){
+        
+      }
+    }); 
+  })
+
+$('#load_data').click(function(){
+$('#export_data').css('display','');
+
+var data = [
+    {
+      id              : '',
+      date            : '', 
+      staff_name      : '',      
+      qty_breakfast   : '',
+      standard_items  : '',
+      standard_rate   : '',
+      snack_amt       : '',
+    }
+  ];
+
+    container     = document.getElementById('report_data');
+    var tab_table = new Handsontable(container, {
+    data: data,
+    fillHandle: {
+    direction: 'vertical',
+    autoInsertRow: true
+  },
+    minSpareRows: 100,
+    colHeaders: true,
+    fillHandle: false,
+    formulas: true,
+    stretchH: 'all',
+    colHeaders: ['S.No','Date','Staff','Items','Rate','Qty','Amount'],
+    contextMenu: true,
+    columns: [
+    { data: "id",
+      type : 'text',      
+      readOnly: true, 
+
+    },
+
+    {
+      data: "date",
+      type : 'date',
+      dateFormat: 'DD-MM-YY',
+      readOnly: true
+    },
+
+    {
+      data: "staff_name",      
+      strict: false, 
+      readOnly: true            
+    },
+
+    {
+      data: "items",
+      type : 'text',
+      readOnly: true
+    },
+
+    {
+      data: "rate",
+      type : 'text', 
+      readOnly: true
+    },
+
+     {
+      data: "qty",
+      type : 'text',
+      readOnly: true
+    },
+   
+    {
+      data: "amount",
+      type : 'text',  
+      readOnly: true     
+    },   
+  ],
+});
+
+var date_filter = $('#date_filter').val();
+  if(date_filter==''){
+    alert('Please Select Date');
+    return 0;
+  }
+
+  $.ajax({
+    url : "/snacks/get_reports_data/",
+    type : "POST",
+
+    dataType : "json",
+    data : { 
+      'date_filter' : date_filter
+      
+    },
+    success : function(obj_data){ 
+      //console.log(obj_data)    
+      if(obj_data.length>0)
+      {
+      tab_table.loadData(obj_data); 
+
+      }
+      else
+      {
+      tab_table.loadData(obj_data);       
+      }
+    },
+    error:function(err){
+      console.log(JSON.stringify(err,null,4));
+    }
+  }); 
+
+  $('#hot-display-license-info').css('display','none');
+})
+
+$('#hot-display-license-info').css('display','none');
+
+
+
+$('#export_data').click(function(){
+  var date_filter = $('#date_filter').val();
+  
+   $.ajax({
+    url : "/snacks/export_tracker/",
+    type : "POST",
+
+    dataType : "json",
+    data : { 
+      'date_filter' : JSON.stringify(date_filter),
+      
+    },
+    success : function(obj_data){ 
+     location.href = '/snacks/report_export/'
+    },
+    error:function(err){
+      console.log(JSON.stringify(err,null,4));
+    }
+  }); 
+})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</script>
+
+
+
+{% endblock %}

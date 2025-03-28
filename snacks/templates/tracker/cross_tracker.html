@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% load mathfilters %}
+{% block content %}
+
+<script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+
+
+<div class="container">
+  <div class="col-md-4">
+    <div class="box">
+      <div class="box-body">
+        <h4>Limit Cross Tracker</h4>       
+        <div class = "col-md-12" style="height:100%;width: 1000px;">
+          <table  style="width:100%;padding: 0px" border="1" id="cross_tracker_details">
+            
+            <thead>
+              <tr>
+                <th colspan="2"></th>
+                {% for t in dat_array %}
+                  <th style="white-space: nowrap;" class="get_date_details">{{t}}</th>
+                {% endfor %}
+              </tr>
+            </thead>
+          
+          {% for x in snack_details %}
+          <tbody>
+            <tr>
+              <td rowspan="7"  style="white-space: nowrap;font-weight: bold;">{{x.staff_name}}</td>             
+              <td>Breakfast</td>
+              {% for t in dat_array %}
+                <td>{% if t == x.entry_date %}{{x.breakfast}} {% else %}{% endif %}</td>
+              {% endfor %}
+            </tr>
+            <tr>
+              <td>Lunch</td>
+              {% for t in dat_array %}
+                <td>{% if t == x.entry_date %}{{x.lunch}} {% else %}{% endif %}</td>
+              {% endfor %}
+            </tr>
+            <tr>
+              <td>Dinner</td>
+              {% for t in dat_array %}
+                <td>{% if t == x.entry_date %}{{x.dinner}} {% else %}{% endif %}</td>
+              {% endfor %}
+            </tr>
+            <tr>
+              <td  style="white-space: nowrap;font-weight: bold;">Total Tiffin</td>
+              {% for t in dat_array %}
+                <td><b>{% if t == x.entry_date %}{{x.tiffin_amt}} {% else %}{% endif %}</b></td>
+              {% endfor %}
+            </tr>
+            <tr>
+              <td>Snack</td>
+              {% for t in dat_array %}
+                <td>{% if t == x.entry_date %}{{x.snack_amt}} {% else %}{% endif %}</td>
+              {% endfor %}
+            </tr>
+            <tr>
+              <td style="white-space: nowrap;font-weight: bold;color:green">Snacks + Tiffin</td>
+              {% for t in dat_array %}
+                <td style="white-space: nowrap;font-weight: bold;color:green">{% if t == x.entry_date %}{{x.snack_tiffin}} {% else %}{% endif %}</td>
+              {% endfor %}
+            </tr>
+            <tr>
+              <td style="white-space: nowrap;font-weight: bold;color:red">Overdue</td>
+              {% for t in dat_array %}
+                <td style="white-space: nowrap;font-weight: bold;color:red">{% if t == x.entry_date %}{{x.overdue}} {% else %}{% endif %}</td>
+              {% endfor %}
+            </tr>         
+          </tbody>
+          {% endfor %}
+          </table>
+        </div>
+      </div>  
+    </div>
+  </div>
+</div>
+
+
+<script type="text/javascript">
+  var get_date = $('.get_date_details').html();
+  console.log(get_date)
+</script>
+
+
+{% endblock %}

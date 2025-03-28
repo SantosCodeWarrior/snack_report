@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+{% block content %}
+
+<script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+
+
+<div class="container">
+  <div class="col-md-4">
+    <div class="box">
+      <div class="box-body">
+        <h4>Staff Entry</h4>
+
+          <table class="table table-hover table-bordered"  style="width:100%">
+            <thead>
+              <tr>
+                <th style="white-space: nowrap;">Staff Name</th>
+                <th><input type="text" name="" id="staff_name" autocomplete="off"></th>
+                <th style="white-space: nowrap;">E-Mail</th>
+                <th><input type="text" name="" id="email" autocomplete="off"></th>
+                <th><button class="btn btn-success" id="staff_submit">Submit</button></th>
+              </tr>
+            </thead>
+            </table>
+        
+       
+
+
+
+        <table class="display nowrap" style="width:100%" id="staff_data">
+          <thead>            
+            <th>S.No</th>
+            <th style="display: none;">ID</th>
+            <th>Staff Name</th> 
+            <th>E-Mail ID</th> 
+            <th></th>                 
+          </thead>
+          {% for x in staff_list %}
+          <tr>
+            <td>{{forloop.counter}}</td>
+            <td class="id" style="display: none;">{{x.id}}</td>
+            <td class="get_staff_name">{{x.staff_master}}</td>
+            <td class="get_email_id">{{x.email|default_if_none:""}}</td>
+            <td><BUTTON class="btn btn-primary btn-md edit" data-toggle="modal" data-target="#select_staff_master" id="update_staff_master">Edit</BUTTON></td>
+            {% endfor %}
+          </tr>
+          
+        </table>
+      </div>  
+    </div>
+  </div>
+</div>
+
+
+<script type="text/javascript">
+  $('#staff_submit').click(function(){
+    var staff_name = $('#staff_name').val();
+    var email      = $('#email').val();   
+    $.ajax({
+      url: '/snacks/submit_staff_master/',
+      dataType: 'JSON',
+      type: 'GET',
+      data:
+      {
+        'staff_name'  : staff_name,
+        'email'       : email,          
+      },
+      success : function(obj){  
+      console.log(obj)        
+        if(obj=='done'){
+          alert('Successfully submitted')
+          location.reload();
+        }
+
+         if (obj=='already'){
+          alert('Successfully updated.')
+          location.reload();
+        }
+      },
+      error : function(err){
+        
+      }
+    }); 
+  })
+
+$('.edit').click(function(){
+  var id             = $(this).closest("tr").find(".id").text();
+  var get_staff_name = $(this).closest("tr").find(".get_staff_name").text();
+  var get_email_id   = $(this).closest("tr").find(".get_email_id").text();    
+  get_staff_name_email(id,get_staff_name,get_email_id);    
+})
+
+
+function get_staff_name_email(id,e_staff_name,e_email){
+  $('#e_staff_name').val(e_staff_name);
+  $('#e_email').val(e_email); 
+  $('#e_id').val(id)
+}
+
+
+
+
+
+
+
+
+</script>
+
+
+
+<style type="text/css">
+  div.dataTables_wrapper {
+        width: 900px;
+        margin: 0 auto;
+    }
+</style>
+
+<div id="select_staff_master" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content" style="width: 136%;">
+      <div class="modal-header">
+        <h4 class="modal-title">UPDATE Staff Master </h4>
+        <div id="e_id"></div>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="input-group">
+          <span class="input-group-addon" style="width:30%">Staff Name</span>
+          <input type="text" class="form-control col-md-4" id="e_staff_name"> 
+        </div> 
+
+        <div class="input-group">
+          <span class="input-group-addon" style="width:30%">E-Mail ID </span>
+          <input type="text" class="form-control col-md-4" id="e_email">
+        </div>
+
+        <button class="btn btn-primary" id="get_update">UPDATE</button>
+
+        <div class="modal-body">
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal" id="refresh" style="cursor: pointer">Close</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script type="text/javascript">
+  $('#get_update').click(function(){
+    var e_staff_name  = $('#e_staff_name').val();
+    var e_mail        = $('#e_email').val();
+    var e_id          = $('#e_id').val();   
+    $.ajax({
+        url: '/snacks/update_staff_master/',
+        dataType: 'JSON',
+        type: 'GET',
+        data:
+        {
+          'e_id'         : e_id,
+          'e_staff_name' : e_staff_name,
+          'e_mail'       : e_mail,          
+        },
+        success : function(obj){          
+          if(obj=='done'){
+            alert('Successfully Updated')
+            location.reload();
+          }        
+        },
+        error : function(err){
+          
+        }
+      }); 
+    })
+</script>
+
+{% endblock %}

@@ -1,0 +1,230 @@
+{% extends "base.html" %}
+{% block content %}
+
+<script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+
+
+<div class="container">
+  <div class="col-md-4">
+    <div class="box">
+      <div class="box-body">
+        <h4>Proprietor Entry</h4>    
+
+        <table class="table table-hover table-bordered"  style="width:100%">
+          <thead>
+            <tr>
+              <th style="white-space: nowrap;">Proprietor's Name</th>
+              <th><input type="text" name="" id="owner_name" autocomplete="off"></th>
+              <th>Contact No</th>
+              <th colspan="2"><input type="text" name="" id="contact_no" autocomplete="off"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="font-weight: bold;">E-Mail ID</td>
+              <td><input type="email" name="" id="email_id" autocomplete="off" max="10"></td>
+              <td style="font-weight: bold;">Shop Name</td>
+              <td colspan="2"><input type="text" name="" id="shop_name" autocomplete="off"></td>
+            </tr>
+            <tr>
+              <td style="font-weight: bold;">Address</td>
+              <td colspan="3"><textarea name="" id="address" style="width: 406px;height: 73px;" autocomplete="nope"> </textarea> </td>
+              <td><button class="btn btn-success col-md-12" id="owner_submit">Submit</button></td>
+            </tr>
+          </tbody>
+          </table>
+
+
+          <table class="display nowrap" style="width:100%" id="staff_data">
+          <thead>            
+            <th>S.No</th>
+            <th style="display: none;">ID</th>
+            <th>Proprietor's Name</th> 
+            <th>Contact No</th> 
+            <th>E-Mail ID</th> 
+            <th>Shop Name</th> 
+            <th>Address</th> 
+            <th></th>                 
+          </thead>
+          {% for x in owner_list %}
+          <tr>
+            <td>{{forloop.counter}}</td>
+            <td class="id" style="display: none;">{{x.id}}</td>
+            <td class="get_owner_name">{{x.owner_name}}</td>
+            <td class="get_contact_no">{{x.contact_no}}</td>
+            <td class="get_email">{{x.email}}</td>
+            <td class="get_shop_name">{{x.shop_name}}</td>
+            <td class="get_address" style="white-space: normal;">{{x.address}}</td>
+            <td><BUTTON class="btn btn-primary btn-md edit" data-toggle="modal" data-target="#select_items_master" id="update_items_master">Edit</BUTTON></td>
+            {% endfor %}
+          </tr>
+          
+        </table>
+      </div>  
+    </div>
+  </div>
+</div>
+
+
+<script type="text/javascript">
+  $('#owner_submit').click(function(){
+    var owner_name  = $('#owner_name').val();
+    var contact_no  = $('#contact_no').val();
+    var email_id    = $('#email_id').val();
+    var shop_name   = $('#shop_name').val();
+    var address     = $('#address').val();
+
+
+    $.ajax({
+      url: '/snacks/submit_owner_list/',
+      dataType: 'JSON',
+      type: 'GET',
+      data:
+      {
+        'owner_name'  : owner_name,
+        'contact_no'  : contact_no,
+        'email_id'    : email_id,
+        'shop_name'   : shop_name,
+        'address'     : address,
+      },
+      success : function(obj){  
+      console.log(obj)        
+        if(obj=='done'){
+          alert('Successfully submitted')
+          location.reload();
+        }
+
+         if (obj=='already'){
+          alert('Successfully updated.')
+          location.reload();
+        }
+      },
+      error : function(err){
+        
+      }
+    }); 
+  })
+
+$('.edit').click(function(){
+  var id              = $(this).closest("tr").find(".id").text();
+  var get_owner_name  = $(this).closest("tr").find(".get_owner_name").text();
+  var get_contact_no  = $(this).closest("tr").find(".get_contact_no").text();   
+  var get_email_id    = $(this).closest("tr").find(".get_email").text();    
+  var get_shop_name   = $(this).closest("tr").find(".get_shop_name").text();    
+  var get_address     = $(this).closest("tr").find(".get_address").text();     
+  get_snack_list(id,get_owner_name,get_contact_no,get_email_id,get_shop_name,get_address);    
+})
+
+
+function get_snack_list(id,get_owner_name,get_contact_no,get_email_id,get_shop_name,get_address){
+  $('#e_owner_name').val(get_owner_name)
+  $('#e_contact_no').val(get_contact_no)
+  $('#e_email').val(get_email_id)
+  $('#e_shop_name').val(get_shop_name)
+  $('#e_address').val(get_address)
+  $('#e_id').val(id)
+}
+
+</script>
+
+
+
+<style type="text/css">
+  div.dataTables_wrapper {
+        width: 900px;
+        margin: 0 auto;
+    }
+</style>
+
+<div id="select_items_master" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content" style="width: 136%;">
+      <div class="modal-header">
+        <h4 class="modal-title">UPDATE</h4>
+        <div id="e_id"></div>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="input-group">
+          <span class="input-group-addon" style="width:30%">Proprietor's Name</span>
+          <input type="text" class="form-control col-md-4" id="e_owner_name"> 
+        </div> 
+
+        <div class="input-group">
+          <span class="input-group-addon" style="width:30%">Contact No. </span>
+          <input type="text" class="form-control col-md-4" id="e_contact_no">
+        </div>
+
+        <div class="input-group">
+          <span class="input-group-addon" style="width:30%">E-Mail ID</span>
+          <input type="text" class="form-control col-md-4" id="e_email">
+        </div>
+
+        <div class="input-group">
+          <span class="input-group-addon" style="width:30%">Shop Name</span>
+          <input type="text" class="form-control col-md-4" id="e_shop_name">
+        </div>
+
+       <div class="input-group">
+          <span class="input-group-addon" style="width:30%">Address</span>        
+          <textarea name="" id="e_address" style="width: 406px;height: 73px;" class="form-control col-md-4"> </textarea> 
+        </div>
+
+        <button class="btn btn-primary" id="get_update">UPDATE</button>
+
+        <div class="modal-body">
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal" id="refresh" style="cursor: pointer">Close</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script type="text/javascript">
+  $('#get_update').click(function(){    
+    var e_id          = $('#e_id').val();
+    var e_owner_name  = $('#e_owner_name').val();
+    var e_contact_no  = $('#e_contact_no').val();
+    var e_email_id    = $('#e_email').val();
+    var e_shop_name   = $('#e_shop_name').val();
+    var e_address     = $('#e_address').val();
+   
+    $.ajax({
+        url: '/snacks/update_owner_data/',
+        dataType: 'JSON',
+        type: 'GET',
+        data:
+        {
+          'e_id'          : e_id,
+          'e_owner_name'  : e_owner_name,
+          'e_contact_no'  : e_contact_no,
+          'e_email_id'    : e_email_id,
+          'e_shop_name'   : e_shop_name,
+          'e_address'     : e_address,
+        },
+        success : function(obj){          
+          if(obj=='done'){
+            alert('Successfully Updated')
+            location.reload();
+          }        
+        },
+        error : function(err){
+          
+        }
+      }); 
+    })
+
+
+
+$(document).ready(function()
+{
+  $("#contact_no").attr('maxlength','10');
+});
+
+</script>
+
+{% endblock %}

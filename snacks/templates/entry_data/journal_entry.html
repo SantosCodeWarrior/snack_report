@@ -1,0 +1,352 @@
+{% extends "base.html" %}
+{% block content %}
+<script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+
+
+<div class="container">
+  <div class="col-md-4">
+    <div class="box">
+      <div class="box-body">
+        <h4>Journal Entry</h4>       
+        <div class = "col-md-12" style="height:100%">
+          <div class = 'handsontable' style="height: 400px; width:1000px;overflow: auto; margin-top: 8px;margin-left: -38px;" data-originalstyle="height: 300px; overflow: auto"  id="journal_entry"></div>
+          <button class="btn btn-success btn-lg btn-block"  style = "margin-top: 12px;margin-left: -38px;" id = "tab_type"  data-loading-text="<i class='fa fa-spinner fa-spin'></i> Loading">Submit</button>
+        </div>
+        
+       
+      </div>  
+    </div>
+  </div>
+</div>
+
+<style type="text/css">
+  .hot-display-license-info{
+    display: none;
+  }
+</style>
+
+
+<script type="text/javascript">
+
+staff_list          = [];
+snacks_list         = [];
+rate_list           = [];
+get_breakfast_list  = [];
+
+
+
+  $.ajax({
+    url : "/snacks/get_staff_data",
+    type : "get",
+
+    dataType : "json",
+    data : { 
+      
+    },
+    success : function(obj){      
+      for(var i=0;i<obj['staff_array'].length;i++)
+      {
+        staff_list.push(obj['staff_array'][i]['staff_name'])
+      }
+
+      for(var i=0;i<obj['items_array'].length;i++)
+      {
+        snacks_list.push(obj['items_array'][i]['items'])       
+      }
+    },
+    error: function(err){
+      console.log(JSON.stringify(err,null,4))
+    }
+  }); 
+
+
+
+
+var data = [
+    {    
+
+   /* id				: '',
+	date			: '',
+	snack_amt		: '',
+	qty_lunch		: '',
+	qty_dinner		: '',
+	staff_name		: '',
+	total_tifin		: '',
+	standard_qty	: '',
+	qty_breakfast	: '',
+	standard_rate	: '',
+	standard_items	: '',*/
+    }
+  ];
+
+    container     = document.getElementById('journal_entry');
+    var tab_table = new Handsontable(container, {
+    data: data,
+    fillHandle: {
+    direction: 'vertical',
+    autoInsertRow: true
+  },
+    minSpareRows: 50,
+    colHeaders: true,
+    fillHandle: false,
+    colWidths           : [30,80,110,70,60,60,60,120,50,90],
+    formulas: true,
+    stretchH: 'all',
+    colHeaders: ['S.No','Date','Staff Name','Tiffin B.Fast','Tiffin Lunch','Tiffin Dinner','Tiffin Total','Standard Item','Rate','Qty','Amount'],
+    contextMenu: true,
+    columns: [
+    { data: "id",
+      type : 'text',      
+      readOnly: true, 
+
+    },
+
+    {
+      data: "date",
+      type : 'date',
+      dateFormat: 'YYYY-MM-DD',
+    },
+
+    {
+      data: "staff_name",
+      type : 'dropdown',
+      strict: false,
+      source:staff_list,          
+    },
+
+    {
+      data: "qty_breakfast",
+      type : 'text',
+    },
+
+    {
+      data: "qty_lunch",
+      type : 'text', 
+    },
+
+     {
+      data: "qty_dinner",
+      type : 'text',
+    },
+   
+    {
+      data: "total_tifin",
+      type : 'text',  
+      renderer: get_total_tiffin, 
+      readOnly: true,    
+    },
+
+    {
+      data: "standard_items",
+      type : 'dropdown',
+      strict: false,
+      source: snacks_list  
+    },
+
+    {
+      data: "standard_rate",
+      type : 'text',  
+      strict: false,
+      renderer: get_rate_list,   
+      source: rate_list,   
+      readOnly: true, 
+    },
+
+    {
+      data: "standard_qty",
+      type : 'text', 
+     
+    },
+
+     {
+      data: "snack_amt",
+      type : 'text',
+      renderer: snacks_amt, 
+      readOnly: true,     
+      
+    },
+  ],
+});
+
+$('#hot-display-license-info').css('display','none');
+
+function get_rate_list(instance, td, row, col, prop, value, cellProperties) {
+    Handsontable.renderers.TextRenderer.apply(this, arguments);
+    var data      = instance.getData();
+    var valueAtC  = data[row][7];   
+    $.ajax({
+    url : "/snacks/get_rate_data",
+    type : "get",
+    dataType : "json",
+    data : { 
+      'item_name' :  valueAtC,
+    },
+    success : function(obj){        
+      if (valueAtC !=0) {
+        td.innerHTML = obj;
+        qty           = data[row][9];
+        tot_amt       = parseFloat(obj)*parseFloat(qty);       
+        
+      } else {
+        td.innerHTML  = 0.0;
+      }
+      return td;
+    },
+    error: function(err){      
+      console.log(JSON.stringify(err,null,4))
+    }
+  }); 
+}
+
+
+var a = null;
+var b = null;
+var c = null;
+var sums = 0;
+function get_total_tiffin(instance, td, row, col, prop, value, cellProperties) {
+    Handsontable.renderers.TextRenderer.apply(this, arguments);
+    var data      = instance.getData();
+    var valueAtC1 = data[row][6]; //Total_tiffin
+    var breakfast = data[row][3]; //
+    var lunch     = data[row][4];
+    var dinner    = data[row][5];
+    $.ajax({
+    url : "/snacks/get_total_tiffin",
+    type : "get",
+    dataType : "json",
+    data : { 
+      'breakfast' : breakfast,
+      'lunch'     : lunch,
+      'dinner'    : dinner,
+    },
+    success : function(obj){
+      if(dinner==1){
+        if (obj[2]['tiffin_rate'] !=0) {
+          a = obj[2]['tiffin_rate'];          
+        }
+      }else{
+        a = 0
+      }
+
+      if(lunch==1){
+        if (obj[1]['tiffin_rate'] !=0) {
+          b = obj[1]['tiffin_rate'];
+        }
+      }else{
+        b = 0
+      } 
+
+      if(breakfast==1){
+        if (obj[0]['tiffin_rate'] !=0) {
+          c = obj[0]['tiffin_rate'];
+        }
+      }else{
+        c = 0
+      }
+      
+      sums = parseFloat(a)+parseFloat(b)+parseFloat(c);
+      if (sums !='') {
+        td.innerHTML = sums;
+      } else {
+        td.innerHTML = ''
+      }
+
+      return td;
+
+    },
+    error: function(err){      
+      console.log(JSON.stringify(err,null,4))
+    }
+  });
+}
+
+
+
+function snacks_amt(instance, td, row, col, prop, value, cellProperties){    
+  Handsontable.renderers.TextRenderer.apply(this, arguments);
+  
+  var data      = instance.getData();
+  var qty       = data[row][9];
+  var items     = data[row][7];
+
+
+   $.ajax({
+    url : "/snacks/get_amount_details",
+    type : "get",
+    dataType : "json",
+    data : { 
+      'items' : items,
+      'qty'   : qty,   
+    },
+    success : function(obj){      
+     if (obj !='1') {
+          td.innerHTML = obj;
+      } else {
+        td.innerHTML = ''
+      }
+      return td;
+    },
+    error: function(err){      
+      console.log(JSON.stringify(err,null,4))
+    }
+  });
+ }
+
+
+
+$('#tab_type').click(function(){
+  journal_data  = tab_table.getData();
+  $.ajax({
+    url : "/snacks/submit_journal_data/",
+    type : "POST",
+
+    dataType : "json",
+    data : { 
+      'journal_data'  : JSON.stringify(journal_data),
+      csrfmiddlewaretoken: ''    
+    },
+    success : function(obj){      
+      alert("Done");
+      location.reload();
+    },
+    error: function(err){
+      console.log(JSON.stringify(err,null,4))
+    }
+  }); 
+})
+
+
+get_reports();
+
+function get_reports(){
+  $.ajax({
+    url : "/snacks/get_tab_name/",
+    type : "POST",
+
+    dataType : "json",
+    data : { 
+      
+    },
+    success : function(obj_data){
+     
+      if(obj_data.length>0)
+      {
+      tab_table.loadData(obj_data);
+      }
+      else
+      {
+      tab_table.loadData(obj_data);       
+      }
+    },
+    error:function(err){
+      console.log(JSON.stringify(err,null,4));
+    }
+  }); 
+}
+
+ 
+
+</script>
+
+
+{% endblock %}
